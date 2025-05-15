@@ -1,7 +1,8 @@
 const express = require('express');
 const {
     MongoClient,
-    ServerApiVersion
+    ServerApiVersion,
+    ObjectId
 } = require('mongodb');
 const cors = require('cors');
 const app = express();
@@ -35,7 +36,7 @@ async function run() {
         app.get('/coffees/:id', async (req, res) => {
             const id = req.params.id;
             const query = {
-                _id: new Object(id)
+                _id: new ObjectId(id)
             };
             const result = await coffeesCollection.findOne(query);
             res.send(result);
@@ -44,6 +45,31 @@ async function run() {
         app.post('/coffees', async (req, res) => {
             const newCoffee = req.body;
             const result = await coffeesCollection.insertOne(newCoffee);
+            res.send(result);
+        })
+
+        app.put('/coffees/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = {
+                _id: new ObjectId(id)
+            };
+            const updated = req.body;
+            const options = {
+                upsert: true
+            };
+            const updateDoc = {
+                $set: updated
+            }
+            const result = await coffeesCollection.updateOne(filter, updateDoc, options);
+            res.send(result);
+        })
+
+        app.delete('/coffees/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = {
+                _id: new ObjectId(id)
+            };
+            const result = await coffeesCollection.deleteOne(query);
             res.send(result);
         })
 
