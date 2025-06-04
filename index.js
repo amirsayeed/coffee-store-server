@@ -27,6 +27,7 @@ async function run() {
         // await client.connect();
 
         const coffeesCollection = client.db("coffeeDB").collection("coffees");
+        const ordersCollection = client.db("coffeeDB").collection("orders");
         const usersCollection = client.db("coffeeDB").collection("users");
 
         app.get('/coffees', async (req, res) => {
@@ -45,6 +46,8 @@ async function run() {
 
         app.post('/coffees', async (req, res) => {
             const newCoffee = req.body;
+            const quantity = newCoffee.quantity;
+            newCoffee.quantity = parseInt(quantity);
             const result = await coffeesCollection.insertOne(newCoffee);
             res.send(result);
         })
@@ -83,6 +86,8 @@ async function run() {
             res.send(result);
         })
 
+
+        //like coffee
         app.patch('/like/:coffeeId', async (req, res) => {
             const id = req.params.coffeeId;
             const email = req.body.email;
@@ -105,6 +110,23 @@ async function run() {
                 message: alreadyLiked ? 'Dislike Successful' : 'Like Successful',
                 liked: !alreadyLiked,
             });
+        })
+
+        //order coffee
+        app.post('/place-order/:coffeeId', async (req, res) => {
+            const id = req.params.coffeeId;
+            const orderCoffee = req.body;
+            const result = await ordersCollection.insertOne(orderCoffee);
+            if (result.acknowledged) {
+                await coffeesCollection.updateOne({
+                    _id: new ObjectId(id)
+                }, {
+                    $inc: {
+                        quantity: -1,
+                    },
+                })
+            }
+            res.status(201).send(result);
         })
 
         //users detail
