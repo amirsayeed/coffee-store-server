@@ -74,6 +74,30 @@ async function run() {
             res.send(result);
         })
 
+        app.patch('/like/:coffeeId', async (req, res) => {
+            const id = req.params.coffeeId;
+            const email = req.body.email;
+            const filter = {
+                _id: new ObjectId(id)
+            };
+            const coffee = await coffeesCollection.findOne(filter);
+            const alreadyLiked = coffee?.likedBy.includes(email);
+            const updateDoc = alreadyLiked ? {
+                $pull: {
+                    likedBy: email
+                }
+            } : {
+                $addToSet: {
+                    likedBy: email
+                }
+            }
+            const result = await coffeesCollection.updateOne(filter, updateDoc);
+            res.send({
+                message: alreadyLiked ? 'Dislike Successful' : 'Like Successful',
+                liked: !alreadyLiked,
+            });
+        })
+
         //users detail
 
         app.get('/users', async (req, res) => {
