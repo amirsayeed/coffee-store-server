@@ -74,6 +74,15 @@ async function run() {
             res.send(result);
         })
 
+        app.get('/myCoffees/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = {
+                email
+            };
+            const result = await coffeesCollection.find(query).toArray();
+            res.send(result);
+        })
+
         app.patch('/like/:coffeeId', async (req, res) => {
             const id = req.params.coffeeId;
             const email = req.body.email;
