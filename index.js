@@ -129,6 +129,48 @@ async function run() {
             res.status(201).send(result);
         })
 
+        //my orders 
+
+        app.get('/my-orders/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = {
+                customerEmail: email
+            };
+            const orders = await ordersCollection.find(query).toArray();
+            for (const order of orders) {
+                const orderId = order.coffeeId;
+                const orderData = await coffeesCollection.findOne({
+                    _id: new ObjectId(orderId)
+                })
+                order.name = orderData.name;
+                order.photo = orderData.photo;
+                order.price = orderData.price;
+                order.quantity = orderData.quantity;
+
+            }
+            res.send(orders);
+        })
+
+        app.delete('/my-orders/:id', async (req, res) => {
+            const id = req.params.id;
+            const {
+                coffeeId
+            } = req.body;
+            const query = {
+                _id: new ObjectId(id)
+            };
+            const result = await ordersCollection.deleteOne(query);
+            if (result.acknowledged) {
+                await coffeesCollection.updateOne({
+                    _id: new ObjectId(coffeeId)
+                }, {
+                    $inc: {
+                        quantity: 1,
+                    }
+                })
+            }
+            res.send(result);
+        })
         //users detail
 
         app.get('/users', async (req, res) => {
